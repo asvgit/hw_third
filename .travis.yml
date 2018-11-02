@@ -14,4 +14,4 @@ deploy:
   provider: script
   skip_cleanup: true
   script:
-  - curl -T homework-1.0.$TRAVIS_BUILD_NUMBER-Linux.deb -uasvgit:$BINTRAY_API_KEY "https://api.bintray.com/content/savaorg/otuscpp/homework/$TRAVIS_BUILD_NUMBER/homework-2.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
+  - curl -T homework-2.0.$TRAVIS_BUILD_NUMBER-Linux.deb -uasvgit:$BINTRAY_API_KEY "https://api.bintray.com/content/savaorg/otuscpp/homework/$TRAVIS_BUILD_NUMBER/homework-2.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
