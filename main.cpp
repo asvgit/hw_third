@@ -71,9 +71,33 @@ struct logging_allocator {
 	}
 };
 
+template<int I>
+struct fact {
+	static const int value = I * fact<I - 1>::value;
+	static int val(const int n) {
+		if (I == n)
+			return value;
+		return fact<I - 1>::val(n);
+	}
+};
+
+template<>
+struct fact<0> {
+	static const int value = 1;
+	static int val(const int n) {
+		return value;
+	}
+};
+
+constexpr int magic_num = 10;
+
 int main() {
 	try {
-		auto m = std::map<int, int, std::less<int>, logging_allocator<std::pair<const int, int>, 10>>{};
+		for (size_t i = 0; i < magic_num; ++i) {
+			std::cout << fact<magic_num>::val(i) << std::endl;
+		}
+
+		auto m = std::map<int, int, std::less<int>, logging_allocator<std::pair<const int, int>, magic_num>>{};
 		for (size_t i = 0; i < 20; ++i) {
 			m[i] = i;
 			std::cout << std::endl;
