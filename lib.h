@@ -30,6 +30,7 @@ struct logging_allocator {
 	const int m_max_part_size = S;
 	int m_container_size = 0;
 	std::vector<void*> m_mem;
+	std::vector<int> m_mem_sizes;
 
 	using value_type = T;
 
@@ -44,50 +45,84 @@ struct logging_allocator {
 	};
 
 	T *allocate(std::size_t n) {
-		if (m_mem.size() * m_max_part_size <= m_container_size) {
-			// std::cout << __PRETTY_FUNCTION__ << "[n = " << m_max_part_size * n << "]" << std::endl;
-			auto p = std::malloc(m_max_part_size * n * sizeof(T));
-			if (!p)
-				throw std::bad_alloc();
+
+		std::cout << "(part = " << m_max_part_size << ")"<< std::endl;
+		if (!m_container_size) {
+			if (n > m_max_part_size) {
+				std::cout << "(tapa)"<< std::endl;
+				const int alloc_n = n + m_max_part_size - (n % m_max_part_size);
+				if (m_mem.size()) {
+					if (m_mem_sizes.front() > n) {
+						std::free(m_mem.front());
+						auto p = std::malloc(alloc_n * sizeof(T));
+						if (!p) throw std::bad_alloc();
+						m_mem.front() = p;
+						std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << "(allocated)" << "(c_size: " << m_container_size << ")"<< std::endl;
+					}
+					return reinterpret_cast<T *>(m_mem.front());
+				}
+				auto p = std::malloc(alloc_n * sizeof(T));
+				if (!p)
+					throw std::bad_alloc();
+				m_mem.push_back(p);
+				m_mem_sizes.push_back(alloc_n);
+				std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << "(allocated)" << "(c_size: " << m_container_size << ")"<< std::endl;
+				return reinterpret_cast<T *>(m_mem.front());
+			}
+
+			if (m_mem.size()) {
+				std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << "(allocated)" << "(c_size: " << m_container_size << ")"<< std::endl;
+				return reinterpret_cast<T *>(m_mem.front());
+			}
+			auto p = std::malloc(m_max_part_size * sizeof(T));
+			if (!p) throw std::bad_alloc();
 			m_mem.push_back(p);
+			m_mem_sizes.push_back(m_max_part_size);
+			std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << "(allocated)" << "(c_size: " << m_container_size << ")"<< std::endl;
 			return reinterpret_cast<T *>(p);
-		} else {
-			// std::cout << __PRETTY_FUNCTION__ << "[n = " << m_max_part_size * n << "]" <<
-			//     "(allocated)" << std::endl;
-			const size_t step = (m_container_size % m_max_part_size) * sizeof(T);
-			auto p = (size_t)m_mem.back() + step;
+
+		}
+
+		if (m_mem.size() * m_max_part_size < (m_container_size + n)) {
+			auto p = std::malloc(m_max_part_size * sizeof(T));
+			if (!p) throw std::bad_alloc();
+			m_mem.push_back(p);
+			m_mem_sizes.push_back(m_max_part_size);
+			std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << "(allocated)" << "(c_size: " << m_container_size << ")"<< std::endl;
 			return reinterpret_cast<T *>(p);
 		}
+
+		std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << "(fictitious)" << "(c_size: " << m_container_size << ")"<< std::endl;
+		const size_t step = (m_container_size % m_max_part_size) * sizeof(T);
+		auto p = (size_t)m_mem.back() + step;
+		return reinterpret_cast<T *>(p);
 	}
 
 	void deallocate(T *p, std::size_t n) {
-		if (!m_container_size) {
-			// std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "](clean all)" << std::endl;
-			std::free(p);
-			m_mem.clear();
-		} else {
-			// std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" <<
-			//     "(fictitious)" << "(" << m_container_size << "," << m_mem.size() << ")";
-			if (!(m_container_size % m_max_part_size)) {
-				std::free(reinterpret_cast<T *>(m_mem.back()));
-				// std::cout << "(free last)";
-				m_mem.pop_back();
-			}
-			// std::cout << std::endl;
-		}
+		std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" <<
+			"(fictitious)" << "(" << m_container_size << "," << m_mem.size() << ")" << std::endl;
 	}
 
 	template<typename U, typename ...Args>
 	void construct(U *p, Args &&...args) {
-		// std::cout << __PRETTY_FUNCTION__ << "(c_size: " << m_container_size << ")" << std::endl;
+		std::cout << __PRETTY_FUNCTION__ << "(c_size: " << m_container_size << ")" << std::endl;
 		new(p) U(std::forward<Args>(args)...);
 		++m_container_size;
 	}
 
 	template<typename U>
 	void destroy(U *p) {
-		// std::cout << __PRETTY_FUNCTION__ << std::endl;
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
 		p->~U();
 		--m_container_size;
+	}
+
+	~logging_allocator() {
+		while (m_mem.size()) {
+			std::free(m_mem.back());
+			m_mem.pop_back();
+			std::cout << "(free last)";
+		}
+		m_mem_sizes.clear();
 	}
 };
