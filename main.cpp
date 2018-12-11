@@ -7,33 +7,41 @@ constexpr int magic_num = 10;
 using factorial = util::fact<magic_num>;
 
 template<typename T, typename _Alloc = std::allocator<T>>
-class Array {
+class List {
 
 	_Alloc m_alloc;
 	int m_size;
 	T *m_data;
+	List *next;
 
 public:
-	Array(): m_size(0), m_data(nullptr), m_alloc() {}
+	List(): m_size(0), m_data(nullptr), m_alloc(), next(nullptr) {}
+	List(_Alloc alloc): m_size(0), m_data(nullptr), m_alloc(alloc), next(nullptr) {}
 
-	~Array() { delete[] m_data; }
-
-	void push_back(const T val) {
-		auto new_data = m_alloc.allocate(m_size + 1);
-		for (int i = 0; i < m_size; ++i) {
-			m_alloc.construct(&new_data[i], m_data[i]);
-			m_alloc.destroy(&m_data[i]);
-		}
-		m_alloc.construct(&new_data[m_size], val);
-		if (m_size)
-			m_alloc.deallocate(m_data, m_size);
-		m_data = new_data;
-		++m_size;
+	~List() {
+		if (next != nullptr)
+			delete next;
+		m_alloc.destroy(m_data);
+		m_alloc.deallocate(m_data, 1);
 	}
 
-	int& operator[](int index) {
+	void push_back(const T val) {
+		++m_size;
+		if (m_data == nullptr) {
+			m_data = m_alloc.allocate(m_size + 1);
+			m_alloc.construct(m_data, val);
+			return;
+		}
+		if (next == nullptr)
+			next = new List(m_alloc);
+		next->push_back(val);
+	}
+
+	int& operator[](const int index) {
 		assert(index >= 0 && index < m_size);
-		return m_data[index];
+		if (!index)
+			return *m_data;
+		next->operator[](index - 1);
 	}
 
 	int size() { return m_size; }
@@ -56,7 +64,7 @@ int main() {
 		// }
 
 		{
-			Array<int> a;
+			List<int> a;
 			for (size_t i = 0; i < magic_num; ++i) {
 				a.push_back(factorial::val(i));
 			}
@@ -66,7 +74,7 @@ int main() {
 		}
 
 		// {
-		//     Array<int, logging_allocator<int, magic_num>> a;
+		//     List<int, logging_allocator<int, magic_num>> a;
 		//     for (size_t i = 0; i < magic_num; ++i) {
 		//         a.push_back(factorial::val(i));
 		//     }
