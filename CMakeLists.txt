@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(homework VERSION 2.0.$ENV{TRAVIS_BUILD_NUMBER})
+project(allocator VERSION 2.0.$ENV{TRAVIS_BUILD_NUMBER})
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
@@ -8,7 +8,7 @@ configure_file(version.h.in version.h)
 
 add_executable(allocator main.cpp)
 
-add_library(homework_lib lib.cpp)
+add_library(allocator_lib lib.cpp)
 
 add_executable(test_main_cli test_main.cpp)
 
@@ -24,12 +24,12 @@ set_target_properties(test_main_cli PROPERTIES
 )
 
 target_link_libraries(allocator
-	homework_lib
+	allocator_lib
 )
 
 target_link_libraries(test_main_cli
 	${Boost_LIBRARIES}
-	homework_lib
+	allocator_lib
 )
 
 install(TARGETS allocator RUNTIME DESTINATION bin)
