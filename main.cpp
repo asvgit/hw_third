@@ -43,7 +43,7 @@ class List {
 	}
 
 public:
-	List(): head(nullptr), m_size(0), m_alloc() {}
+	List(): head(nullptr), m_alloc(), m_size(0) {}
 
 	~List() {
 		DeleteList(head);

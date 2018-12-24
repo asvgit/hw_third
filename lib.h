@@ -19,7 +19,7 @@ struct fact {
 template<>
 struct fact<0> {
 	static const int value = 1;
-	static int val(const int n) {
+	static int val(const int) {
 		return value;
 	}
 };
@@ -28,7 +28,7 @@ struct fact<0> {
 template<typename T, int S = 5>
 struct logging_allocator {
 	const int m_max_part_size = S;
-	int m_container_size = 0;
+	std::size_t m_container_size = 0;
 	std::vector<void*> m_mem;
 
 	using value_type = T;
@@ -60,7 +60,7 @@ struct logging_allocator {
 		}
 	}
 
-	void deallocate(T *p, std::size_t n) {
+	void deallocate(T *p, std::size_t) {
 		if (!m_container_size) {
 			// std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "](clean all)" << std::endl;
 			std::free(p);
