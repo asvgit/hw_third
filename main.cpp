@@ -52,7 +52,6 @@ public:
 	void push_back(const T &val) {
 		++m_size;
 		Node* node = m_alloc.allocate(1);
-		std::cout << __PRETTY_FUNCTION__ << "n = " << node << "" << std::endl;
 		m_alloc.construct(node, val);
 		if (head == nullptr) {
 			head = node;
@@ -71,32 +70,29 @@ public:
 
 int main() {
 	try {
-		// {
-		//     std::map<int, int> m{};
-		//     for (size_t i = 0; i < magic_num; ++i) {
-		//         m[i] = factorial::val(i);
-		//     }
-		// }
+		{
+			std::map<int, int> m{};
+			for (size_t i = 0; i < magic_num; ++i) {
+				m[i] = factorial::val(i);
+			}
+		}
 
-		// {
-		//     std::map<int, int, std::less<int>, logging_allocator<std::pair<const int, int>, magic_num / 2>> m{};
-		//     for (size_t i = 0; i < magic_num; ++i) {
-		//         m[i] = factorial::val(i);
-		//     }
-		//     for (size_t i = 0; i < magic_num; ++i) {
-		//         std::cout << i << " " << m[i] << std::endl;
-		//     }
-		// }
+		{
+			std::map<int, int, std::less<int>, logging_allocator<std::pair<const int, int>, magic_num / 2>> m{};
+			for (size_t i = 0; i < magic_num; ++i) {
+				m[i] = factorial::val(i);
+			}
+			for (size_t i = 0; i < magic_num; ++i) {
+				std::cout << i << " " << m[i] << std::endl;
+			}
+		}
 
-		// {
-		//     List<int> a;
-		//     for (size_t i = 0; i < magic_num; ++i) {
-		//         a.push_back(factorial::val(i));
-		//     }
-		//     for (size_t i = 0; i < magic_num; ++i) {
-		//         std::cout << i << " " << a[i] << std::endl;
-		//     }
-		// }
+		{
+			List<int> a;
+			for (size_t i = 0; i < magic_num; ++i) {
+				a.push_back(factorial::val(i));
+			}
+		}
 
 		{
 			List<int, logging_allocator<int, magic_num>> a;
