@@ -10,10 +10,17 @@ using factorial = util::fact<magic_num>;
 template<typename T, typename _Alloc = std::allocator<T>>
 class List {
 	struct Node {
-		T m_data = 0;
+		T m_data;
 		Node *next = nullptr;
+		List *m_parent;
 
-		Node(const T &val) : m_data(val), next(nullptr) {}
+		Node(const T &val, List *parent) : m_data(val), next(nullptr), m_parent(parent) {}
+		~Node() {
+			if (next != nullptr) {
+				m_parent->m_alloc.destroy(next);
+				m_parent->m_alloc.deallocate(next, 1);
+			}
+		}
 
 		T& at(const int i) {
 			if (!i)
@@ -21,43 +28,33 @@ class List {
 			return next->at(i - 1);
 		}
 
-		void append(Node *node) {
-			if (next == nullptr)
-				next = node;
-			else
-				next->append(node);
+		static void append(List *parent, Node *&node, const T &val) {
+			if (node == nullptr) {
+				node = parent->m_alloc.allocate(1);
+				parent->m_alloc.construct(node, val, parent);
+				return;
+			}
+			Node::append(parent, node->next, val);
 		}
 	}* head;
+	friend struct Node;
 	using RebindedAlloc = typename _Alloc::template rebind<Node>::other;
 	RebindedAlloc m_alloc;
 	int m_size;
-
-	void DeleteList(Node *head) {
-		if (head == nullptr)
-			return;
-		if (head->next != nullptr) {
-			DeleteList(head->next);
-		}
-		m_alloc.destroy(head);
-		m_alloc.deallocate(head, 1);
-	}
 
 public:
 	List(): head(nullptr), m_alloc(), m_size(0) {}
 
 	~List() {
-		DeleteList(head);
+		if (head == nullptr)
+			return;
+		m_alloc.destroy(head);
+		m_alloc.deallocate(head, 1);
 	}
 
 	void push_back(const T &val) {
 		++m_size;
-		Node* node = m_alloc.allocate(1);
-		m_alloc.construct(node, val);
-		if (head == nullptr) {
-			head = node;
-			return;
-		}
-		head->append(node);
+		Node::append(this, head, val);
 	}
 
 	T& operator[](const int index) {
