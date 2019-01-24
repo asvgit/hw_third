@@ -45,6 +45,13 @@ class List {
 public:
 	List(): head(nullptr), m_alloc(), m_size(0) {}
 
+	template<typename __Alloc>
+	List(List<T, __Alloc> &list) : head(nullptr), m_alloc(), m_size(0)  {
+		std::cout << "List" << std::endl;
+		for (size_t i = 0; i < list.size(); ++i)
+			push_back(list[i]);
+	}
+
 	~List() {
 		if (head == nullptr)
 			return;
