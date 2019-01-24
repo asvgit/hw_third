@@ -50,17 +50,20 @@ struct logging_allocator {
 			if (!p)
 				throw std::bad_alloc();
 			m_mem.push_back(p);
+			++m_container_size;
 			return reinterpret_cast<T *>(p);
 		} else {
 			// std::cout << __PRETTY_FUNCTION__ << "[n = " << m_max_part_size * n << "]" <<
 			//     "(allocated)" << std::endl;
 			const size_t step = (m_container_size % m_max_part_size) * sizeof(T);
 			auto p = (size_t)m_mem.back() + step;
+			++m_container_size;
 			return reinterpret_cast<T *>(p);
 		}
 	}
 
 	void deallocate(T *p, std::size_t) {
+		--m_container_size;
 		if (!m_container_size) {
 			// std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "](clean all)" << std::endl;
 			std::free(p);
@@ -81,13 +84,11 @@ struct logging_allocator {
 	void construct(U *p, Args &&...args) {
 		// std::cout << __PRETTY_FUNCTION__ << "(c_size: " << m_container_size << ")" << std::endl;
 		new(p) U(std::forward<Args>(args)...);
-		++m_container_size;
 	}
 
 	template<typename U>
 	void destroy(U *p) {
 		// std::cout << __PRETTY_FUNCTION__ << std::endl;
 		p->~U();
-		--m_container_size;
 	}
 };
