@@ -46,16 +46,18 @@ public:
 	List() : head(nullptr), m_alloc(), m_size(0) {}
 
 	List(const List &list) : head(nullptr), m_alloc(), m_size(0) {
-		std::cout << "List" << std::endl;
 		for (size_t i = 0; i < list.size(); ++i)
 			push_back(list[i]);
 	}
-	// template<typename __Alloc>
-	// List(List<T, __Alloc> &list) = delete;
-	// template<typename __Alloc>
-	// List(List<T, __Alloc> &&list) = delete;
-	// template<typename __Alloc>
-	// List(List<T, __Alloc> list) = delete;
+	List(List &&list) : head(nullptr), m_alloc(), m_size(list.m_size) {
+		std::cout << "List" << std::endl;
+		std::swap(head, list.head);
+	}
+	template<typename __Alloc>
+	List(const List<T, __Alloc> &list) : head(nullptr), m_alloc(), m_size(0) {
+		for (size_t i = 0; i < list.size(); ++i)
+			push_back(list[i]);
+	}
 
 	~List() {
 		if (head == nullptr)
@@ -87,7 +89,7 @@ int main() {
 		}
 
 		{
-			std::map<int, int, std::less<int>, logging_allocator<std::pair<const int, int>, magic_num / 2>> m{};
+			std::map<int, int, std::less<int>, logging_allocator<std::pair<const int, int>, magic_num / 2>> m {};
 			for (size_t i = 0; i < magic_num; ++i) {
 				m[i] = factorial::val(i);
 			}
@@ -111,7 +113,7 @@ int main() {
 			for (size_t i = 0; i < magic_num; ++i) {
 				std::cout << i << " " << a[i] << std::endl;
 			}
-			List<int, logging_allocator<int, magic_num>> b(a);
+			List<int, logging_allocator<int, magic_num>> b(std::move(a));
 		}
 	} catch(const std::exception &e) {
 		std::cerr << e.what() << std::endl;
