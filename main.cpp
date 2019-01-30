@@ -45,7 +45,7 @@ class List {
 public:
 	List() : head(nullptr), m_alloc(), m_size(0) {}
 
-	List(List &list) : head(nullptr), m_alloc(), m_size(0) {
+	List(const List &list) : head(nullptr), m_alloc(), m_size(0) {
 		std::cout << "List" << std::endl;
 		for (size_t i = 0; i < list.size(); ++i)
 			push_back(list[i]);
@@ -69,12 +69,12 @@ public:
 		Node::append(this, head, std::forward<const T>(val));
 	}
 
-	T& operator[](const int index) {
+	T& operator[](const int index) const {
 		assert(index >= 0 && index < m_size);
 		return head->at(index);
 	}
 
-	int size() { return m_size; }
+	int size() const { return m_size; }
 };
 
 int main() {
