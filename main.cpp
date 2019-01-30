@@ -28,13 +28,13 @@ class List {
 			return next->at(i - 1);
 		}
 
-		static void append(List *parent, Node *&node, T &&val) {
+		static void append(List *parent, Node *&node, const T &val) {
 			if (node == nullptr) {
 				node = parent->m_alloc.allocate(1);
-				parent->m_alloc.construct(node, std::forward<T>(val), parent);
+				parent->m_alloc.construct(node, std::forward<const T>(val), parent);
 				return;
 			}
-			Node::append(parent, node->next, std::forward<T>(val));
+			Node::append(parent, node->next, std::forward<const T>(val));
 		}
 	}* head;
 	friend struct Node;
@@ -43,18 +43,19 @@ class List {
 	int m_size;
 
 public:
-	List(): head(nullptr), m_alloc(), m_size(0) {}
+	List() : head(nullptr), m_alloc(), m_size(0) {}
 
-	template<typename __Alloc>
-	List(const List<T, __Alloc> &list) {
+	List(List &list) : head(nullptr), m_alloc(), m_size(0) {
 		std::cout << "List" << std::endl;
 		for (size_t i = 0; i < list.size(); ++i)
 			push_back(list[i]);
 	}
-	template<typename __Alloc>
-	List(List<T, __Alloc> &list) = delete;
-	template<typename __Alloc>
-	List(List<T, __Alloc> list) = delete;
+	// template<typename __Alloc>
+	// List(List<T, __Alloc> &list) = delete;
+	// template<typename __Alloc>
+	// List(List<T, __Alloc> &&list) = delete;
+	// template<typename __Alloc>
+	// List(List<T, __Alloc> list) = delete;
 
 	~List() {
 		if (head == nullptr)
@@ -63,10 +64,9 @@ public:
 		m_alloc.deallocate(head, 1);
 	}
 
-	void push_back(T &&val) {
+	void push_back(const T &val) {
 		++m_size;
-		std::cout << "List+" << std::endl;
-		Node::append(this, head, std::forward<T>(val));
+		Node::append(this, head, std::forward<const T>(val));
 	}
 
 	T& operator[](const int index) {
@@ -111,6 +111,7 @@ int main() {
 			for (size_t i = 0; i < magic_num; ++i) {
 				std::cout << i << " " << a[i] << std::endl;
 			}
+			List<int, logging_allocator<int, magic_num>> b(a);
 		}
 	} catch(const std::exception &e) {
 		std::cerr << e.what() << std::endl;
